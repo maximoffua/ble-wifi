@@ -30,7 +30,10 @@ dependencies:
   flutter_blue_plus: ^1.30.7
   google_sign_in: ^6.1.6
   supabase_flutter:
-    path: ../grovero/supabase-flutter/packages/supabase_flutter
+    git:
+      url: https://github.com/maximoffua/supabase-flutter.git
+      ref: hive-v4
+      path: packages/supabase_flutter
   hive: ^4.0.0-dev.2
   introduction_screen: ^3.1.12
   url_launcher: ^6.2.2

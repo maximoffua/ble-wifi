@@ -1088,9 +1088,11 @@ packages:
   supabase_flutter:
     dependency: "direct main"
     description:
-      path: "../grovero/supabase-flutter/packages/supabase_flutter"
-      relative: true
-    source: path
+      path: "packages/supabase_flutter"
+      ref: hive-v4
+      resolved-ref: f53f5d5829190b2eb2fed59385a421fbf06e3399
+      url: "https://github.com/maximoffua/supabase-flutter.git"
+    source: git
     version: "1.10.25"
   table_calendar:
     dependency: "direct main"
