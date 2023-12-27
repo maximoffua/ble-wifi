@@ -8,6 +8,8 @@ let
       cmdline-tools-latest
       emulator
       platform-tools
+      platforms-android-30
+      platforms-android-33
       platforms-android-34
       system-images-android-34-google-apis-x86-64
     ]);
@@ -21,6 +23,7 @@ let
 
   enterShell = ''
     export PATH="${android}/bin:${flutter}/bin:$PATH"
+    export LD_LIBRARY_PATH="$DEVENV_ROOT/build/linux/x64/debug/bundle/lib:$DEVENV_ROOT/build/linux/x64/release/bundle/lib:$LD_LIBRARY_PATH"
     ${(builtins.readFile "${android}/nix-support/setup-hook")}
   '';
 }
