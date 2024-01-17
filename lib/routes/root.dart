@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:injectable/injectable.dart';
 import 'package:minigro/features/setup/bluetooth/models/adapter.dart';
+import 'package:wifi_scan/wifi_scan.dart';
 
-import '../features/onboarding/screens/initial.dart';
 import '../features/screens.dart';
 
 part 'root.gr.dart';
@@ -29,6 +29,7 @@ class RootRouter extends _$RootRouter {
           title: (context, data) => "Select device",
         ),
         AutoRoute(page: BluetoothOffRoute.page),
+        AutoRoute(page: FinalRoute.page),
         AutoRoute(
             page: WifiListRoute.page,
             title: (context, data) => "Connect to WiFi"),

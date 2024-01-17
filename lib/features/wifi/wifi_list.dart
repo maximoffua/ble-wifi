@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:minigro/features/wifi/providers/wifi.dart';
 import 'package:minigro/globals/getit.dart';
+import 'package:minigro/routes/root.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 
@@ -102,20 +103,28 @@ class AccessPointTile extends StatelessWidget {
       < -50 => Icons.signal_wifi_4_bar,
       _ => Icons.signal_wifi_4_bar,
     };
+    final router = AutoRouter.of(context);
     return ListTile(
       visualDensity: VisualDensity.compact,
       leading: Icon(signalIcon),
       title: Text(title),
       subtitle: Text(accessPoint.capabilities),
-      onTap: () => showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(title),
-          content: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 150),
-              child: const PasswordPrompt()),
-        ),
-      ),
+      onTap: () async {
+        log.debug("Tapped on $accessPoint");
+        final password = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 150),
+                child: const PasswordPrompt()),
+          ),
+        );
+        log.debug("Password: $password");
+        if (password != null) {
+          router.push(FinalRoute(network: accessPoint, password: password));
+        }
+      },
     );
   }
 }
