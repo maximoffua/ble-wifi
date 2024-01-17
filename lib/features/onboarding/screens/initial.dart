@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:minigro/routes/root.dart';
 
 @RoutePage(name: 'GettingStartedRoute')
 class GettingStarted extends StatefulWidget {
@@ -27,6 +28,17 @@ class _GettingStartedState extends State<GettingStarted>
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Getting Started'));
+    final router = AutoRouter.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(router.current.title(context)),
+        leading: const AutoLeadingButton(),
+      ),
+      body: const Center(child: Text('Getting Started')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => router.push(const WifiListRoute()),
+        child: const Icon(Icons.wifi),
+      ),
+    );
   }
 }

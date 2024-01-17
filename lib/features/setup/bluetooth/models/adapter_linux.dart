@@ -5,7 +5,6 @@ import 'package:minigro/features/setup/bluetooth/models/service.dart';
 import 'package:minigro/globals/bluetooth.dart';
 import 'package:minigro/globals/getit.dart';
 import 'package:minigro/utils/streams.dart';
-import 'package:talker/talker.dart';
 
 import 'adapter.dart';
 
@@ -57,8 +56,11 @@ class LinuxAdapter implements BleAdapter {
   Stream<List<DiscoveredDevice>> get scanResults => scanStream.stream;
 
   @override
-  BleAdapterData get info =>
-      BleAdapterData(name: _a.name, address: _a.address, alias: _a.alias);
+  BleAdapterInfo get info =>
+      BleAdapterInfo(name: _a.name, address: _a.address, alias: _a.alias);
+
+  @override
+  bool get isActive => _a.powered;
 }
 
 class BluezDevice implements DiscoveredDevice {

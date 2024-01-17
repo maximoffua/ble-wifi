@@ -1,11 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:minigro/features/setup/bluetooth/models/adapter.dart';
 import 'package:minigro/features/setup/bluetooth/providers/adapter.dart';
 import 'package:minigro/globals/getit.dart';
 import 'package:minigro/routes/root.dart';
-import 'package:talker/talker.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import '../providers/scanner.dart';
 import 'widgets/scan_result_tile.dart';
@@ -22,31 +23,58 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
   @override
   Widget build(BuildContext context) {
     final adapter = ref.watch(adapterProvider);
+    final aState = ref.watch(adapterStateProvider);
+    switch (aState) {
+      case AsyncData(value: final state):
+        switch (state) {
+          case BluetoothAdapterState.on || BluetoothAdapterState.turningOn:
+            break;
+          case BluetoothAdapterState.turningOff:
+            break;
+          case BluetoothAdapterState.off:
+          case BluetoothAdapterState.unauthorized:
+          case BluetoothAdapterState.unavailable:
+            log.info("Navigate to Bluetooth off page: $state");
+            context.navigateTo(BluetoothOffRoute(adapterState: state));
+            break;
+          default:
+            log.warning("Unsupported state: $state");
+        }
+      case AsyncError(:final error):
+        log.error("Failed to get BLE adapter state", error);
+      default:
+        break;
+    }
+
     final results = ref.watch(scanResultsProvider);
     if (results.hasError) {
-      getIt<Talker>().error("Failed to get BLE devices nearby", results.error);
+      log.error("Failed to get BLE devices nearby", results.error);
     }
-    return Scaffold(
-      appBar: AppBar(title: SelectAdapter(selected: adapter.value?.info)),
-      floatingActionButton: ScanButton(adapter: adapter.value),
-      body: RefreshIndicator(
-        onRefresh: onRefresh,
-        child: switch (results) {
-          AsyncData(hasValue: true, :final value) => ListView(
-              children: _buildScanResult(context, value),
-            ),
-          AsyncLoading() => const Center(child: CircularProgressIndicator()),
-          AsyncError(:final error) => Center(child: Text(error.toString())),
-          _ => const Center(child: Text('Unknown error')),
-        },
+    return TalkerWrapper(
+      talker: getIt(),
+      child: Scaffold(
+        appBar: AppBar(title: SelectAdapter(selected: adapter.value?.info)),
+        floatingActionButton:
+            adapter.hasValue ? ScanButton(adapter: adapter.value) : null,
+        body: RefreshIndicator(
+          onRefresh: onRefresh,
+          child: switch (results) {
+            AsyncData(hasValue: true, :final value) => ListView(
+                children: _buildScanResult(context, value),
+              ),
+            AsyncLoading() => const Center(child: CircularProgressIndicator()),
+            AsyncError(:final error) => Center(child: Text(error.toString())),
+            _ => const Center(child: Text('Unknown error')),
+          },
+        ),
       ),
     );
   }
 
   Future onRefresh() {
-    final adapter = ref.watch(adapterProvider).valueOrNull;
+    final adapter = ref.watch(adapterProvider).value;
     if (adapter != null && !adapter.isScanning) {
-      adapter.startScan(all: true);
+      adapter.startScan();
     }
     return Future.delayed(const Duration(milliseconds: 500));
   }
@@ -55,9 +83,9 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
       BuildContext context, List<DiscoveredDevice> results) {
     return results
         .map(
-          (r) => ScanResultTile(
-            result: r,
-            onTap: () => context.pushRoute(NetworksRoute(device: r)),
+          (dev) => ScanResultTile(
+            result: dev,
+            onTap: () => context.navigateTo(NetworksRoute(device: dev)),
           ),
         )
         .toList();
@@ -66,8 +94,8 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
 
 class SelectAdapter extends ConsumerWidget {
   final Widget? placeholder;
-  final BleAdapterData? selected;
-  final void Function(BleAdapterData?)? onChanged;
+  final BleAdapterInfo? selected;
+  final void Function(BleAdapterInfo?)? onChanged;
 
   const SelectAdapter({
     super.key,
@@ -79,15 +107,20 @@ class SelectAdapter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final availableAdapters = ref.watch(availableAdaptersProvider).value;
+    getIt<Talker>().debug("Available adapters: $availableAdapters [$selected]");
+    getIt<Talker>().debug(
+        "Selected adapter: ${selected?.name} ${selected == availableAdapters?.first} ${availableAdapters?.first.name}");
     return availableAdapters != null && availableAdapters.isNotEmpty
-        ? DropdownMenu<BleAdapterData>(
-            initialSelection: selected,
-            onSelected: (item) =>
-                ref.read(adapterProvider.notifier).changeAdapter(item),
-            dropdownMenuEntries: availableAdapters
-                .map((e) => DropdownMenuEntry(value: e, label: e.name))
-                .toList(),
-          )
+        ? availableAdapters.length > 1
+            ? DropdownMenu<BleAdapterInfo>(
+                initialSelection: selected,
+                onSelected: (item) =>
+                    ref.read(adapterProvider.notifier).changeAdapter(item),
+                dropdownMenuEntries: availableAdapters
+                    .map((e) => DropdownMenuEntry(value: e, label: e.name))
+                    .toList(),
+              )
+            : Text(availableAdapters.first.name)
         : placeholder ?? const Text('No adapters found');
   }
 }
@@ -99,18 +132,15 @@ class ScanButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (adapter == null) {
-      return FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.grey,
-        child: const Text("SCAN"),
-      );
-    }
+    final scanning = ref.watch(isScanningProvider);
+    log.debug("Scanning: $scanning");
+    final isScanning = scanning.value ?? adapter?.isScanning ?? false;
 
     return FloatingActionButton(
-      onPressed: () =>
-          adapter!.isScanning ? adapter!.stopScan() : adapter!.startScan(),
-      child: adapter!.isScanning ? const Icon(Icons.stop) : const Text("SCAN"),
+      onPressed: () => isScanning
+          ? ref.read(adapterProvider.notifier).stopScan()
+          : ref.read(adapterProvider.notifier).startScan(all: true),
+      child: isScanning ? const Icon(Icons.stop) : const Text("SCAN"),
     );
   }
 }

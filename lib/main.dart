@@ -5,7 +5,7 @@ import 'package:minigro/utils/provider_observer.dart';
 import 'package:talker_flutter/talker_flutter.dart'
     show TalkerFlutter, TalkerRouteObserver;
 
-import 'globals/getit.dart';
+import 'globals/getit.dart' show getIt;
 import 'routes/root.dart';
 
 void main() async {

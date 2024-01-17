@@ -16,20 +16,18 @@ class Adapter extends _$Adapter {
   Future<BleAdapter> build() => getItA();
 
   Future startScan({bool all = false}) async {
-    if (state is AsyncData) {
-      final adapter = (state as AsyncData).value as BleAdapter;
+    if (state case AsyncData(value: final adapter)) {
       await adapter.startScan(all: all);
     }
   }
 
   Future stopScan() async {
-    if (state is AsyncData) {
-      final adapter = (state as AsyncData).value as BleAdapter;
+    if (state case AsyncData(value: final adapter)) {
       await adapter.stopScan();
     }
   }
 
-  changeAdapter(BleAdapterData? item) async {
+  changeAdapter(BleAdapterInfo? item) async {
     stopScan();
     if (item == null || !Platform.isLinux) {
       return;
@@ -43,12 +41,23 @@ class Adapter extends _$Adapter {
 }
 
 @riverpod
-Future<List<BleAdapterData>> availableAdapters(AvailableAdaptersRef ref) async {
+Future<List<BleAdapterInfo>> availableAdapters(AvailableAdaptersRef ref) async {
   return Platform.isLinux
       ? (await getItA<BlueZClient>())
           .adapters
           .map((a) =>
-              BleAdapterData(name: a.name, address: a.address, alias: a.alias))
+              BleAdapterInfo(name: a.name, address: a.address, alias: a.alias))
           .toList()
-      : [BleAdapterData(name: await FlutterBluePlus.adapterName, address: '')];
+      : [BleAdapterInfo(name: await FlutterBluePlus.adapterName)];
+}
+
+@Riverpod(keepAlive: false)
+Stream<BluetoothAdapterState> adapterState(AdapterStateRef ref) {
+  final adapter = ref.watch(adapterProvider);
+  if (Platform.isLinux) {
+    return Stream.value((adapter.value?.isActive ?? false)
+        ? BluetoothAdapterState.on
+        : BluetoothAdapterState.off);
+  }
+  return FlutterBluePlus.adapterState;
 }

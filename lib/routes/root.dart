@@ -19,7 +19,18 @@ class RootRouter extends _$RootRouter {
   @override
   List<AutoRoute> get routes => [
         // initial route is named "/"
-        AutoRoute(page: DeviceListRoute.page, initial: true),
-        AutoRoute(page: GettingStartedRoute.page),
+        AutoRoute(
+          page: GettingStartedRoute.page,
+          initial: true,
+          title: (context, data) => "Setup miniGro",
+        ),
+        AutoRoute(
+          page: DeviceListRoute.page,
+          title: (context, data) => "Select device",
+        ),
+        AutoRoute(page: BluetoothOffRoute.page),
+        AutoRoute(
+            page: WifiListRoute.page,
+            title: (context, data) => "Connect to WiFi"),
       ];
 }

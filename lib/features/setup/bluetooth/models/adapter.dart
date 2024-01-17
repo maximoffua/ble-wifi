@@ -1,4 +1,8 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'service.dart';
+
+part 'adapter.freezed.dart';
 
 class BleAdapterData {
   final String name;
@@ -7,6 +11,15 @@ class BleAdapterData {
   final String address;
 
   BleAdapterData({required this.name, this.alias, required this.address});
+}
+
+@freezed
+class BleAdapterInfo with _$BleAdapterInfo {
+  const factory BleAdapterInfo({
+    required String name,
+    @Default('unknown') String address,
+    @Default('default') String? alias,
+  }) = _BleAdapterInfo;
 }
 
 abstract class DiscoveredDevice {
@@ -36,7 +49,9 @@ abstract class BleAdapter {
 
   bool get isScanning;
 
-  BleAdapterData get info;
+  bool get isActive;
+
+  BleAdapterInfo get info;
 
   Stream<List<DiscoveredDevice>> get scanResults;
 }

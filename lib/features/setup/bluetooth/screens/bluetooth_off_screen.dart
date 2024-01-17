@@ -3,11 +3,14 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:minigro/globals/getit.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
+import '../providers/adapter.dart';
+
 @RoutePage()
-class BluetoothOffScreen extends StatelessWidget {
+class BluetoothOffScreen extends ConsumerWidget {
   final Talker talker = getIt();
 
   BluetoothOffScreen({super.key, this.adapterState});
@@ -52,14 +55,15 @@ class BluetoothOffScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final adapterState = ref.watch(adapterStateProvider).value;
     if (adapterState == BluetoothAdapterState.on) {
       context.popRoute();
     }
     return TalkerWrapper(
       talker: talker,
       child: Scaffold(
-        backgroundColor: Colors.lightGreen[600],
+        backgroundColor: Colors.lightGreen[700],
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

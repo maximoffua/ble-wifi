@@ -136,15 +136,16 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1703460843,
-        "narHash": "sha256-9hCTd1pWDxDoKWpz6hjyRtU2dTdLXKfrCq0FXrTwJx4=",
+        "lastModified": 1705290527,
+        "narHash": "sha256-EdDqgbaYLqTxx7rQQXxx5lfFHwjoJ22d8AUpvPhXk9o=",
         "owner": "maximoffua",
         "repo": "flutter.nix",
-        "rev": "d205b6fdd996b0b163bca810dcd45035ee542e7d",
+        "rev": "bf04e5aa9fe3ad9e010ea4382044e3d7183e9224",
         "type": "github"
       },
       "original": {
         "owner": "maximoffua",
+        "ref": "stable",
         "repo": "flutter.nix",
         "type": "github"
       }

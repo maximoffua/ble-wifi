@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:minigro/features/setup/bluetooth/models/service.dart';
 import 'package:minigro/globals/bluetooth.dart';
@@ -12,6 +14,29 @@ class MobileAdapter implements BleAdapter {
       MobileAdapter(name: await FlutterBluePlus.adapterName);
 
   final String name;
+  final StreamController<List<DiscoveredDevice>> _scanResultsController =
+      StreamController.broadcast();
+
+  Stream<List<DiscoveredDevice>> systemDevices() async* {
+    yield await FlutterBluePlus.systemDevices.then((value) => value
+        .map((event) => BleDeviceMobile(
+              event,
+              AdvertisementData(
+                  advName: event.advName,
+                  txPowerLevel: 0,
+                  connectable: true,
+                  manufacturerData: {},
+                  serviceData: {},
+                  serviceUuids: []),
+              0,
+            ))
+        .toList());
+  }
+
+  Stream<List<DiscoveredDevice>> _scanResults() {
+    return FlutterBluePlus.scanResults
+        .map((event) => BleDeviceMobile.fromList(event));
+  }
 
   @override
   bool get isScanning => FlutterBluePlus.isScanningNow;
@@ -19,6 +44,7 @@ class MobileAdapter implements BleAdapter {
   @override
   Future<bool> isScanningNow() => FlutterBluePlus.isScanning.first;
 
+  // merge 2 streams: systemDevices() with _scanResults()
   @override
   Stream<List<DiscoveredDevice>> get scanResults => FlutterBluePlus.scanResults
       .map((event) => BleDeviceMobile.fromList(event));
@@ -33,8 +59,12 @@ class MobileAdapter implements BleAdapter {
   Future<void> stopScan() => FlutterBluePlus.stopScan();
 
   @override
-  BleAdapterData get info =>
-      BleAdapterData(name: name, address: 'unknown', alias: 'default');
+  BleAdapterInfo get info =>
+      BleAdapterInfo(name: name, address: 'unknown', alias: 'default');
+
+  @override
+  bool get isActive =>
+      FlutterBluePlus.adapterStateNow == BluetoothAdapterState.on;
 }
 
 class BleDeviceMobile extends DiscoveredDevice {

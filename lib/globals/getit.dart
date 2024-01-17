@@ -1,4 +1,7 @@
 import 'package:get_it/get_it.dart';
+import 'package:talker/talker.dart';
+
+export 'package:talker/talker.dart';
 
 final sl = GetIt.instance;
 
@@ -27,3 +30,5 @@ Future<T> getItA<T extends Object>({
       param2: param2,
       type: type,
     );
+
+Talker get log => getIt<Talker>();
