@@ -36,7 +36,7 @@ class _GettingStartedState extends State<GettingStarted>
       ),
       body: const Center(child: Text('Getting Started')),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => router.push(const WifiListRoute()),
+        onPressed: () => router.push(const DeviceListRoute()),
         child: const Icon(Icons.wifi),
       ),
     );

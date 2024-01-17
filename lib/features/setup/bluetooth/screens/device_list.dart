@@ -50,12 +50,14 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
     if (results.hasError) {
       log.error("Failed to get BLE devices nearby", results.error);
     }
+    final router = AutoRouter.of(context);
     return TalkerWrapper(
       talker: getIt(),
       child: Scaffold(
         appBar: AppBar(title: SelectAdapter(selected: adapter.value?.info)),
-        floatingActionButton:
-            adapter.hasValue ? ScanButton(adapter: adapter.value) : null,
+        floatingActionButton: IconButton(
+            icon: const Icon(Icons.wifi),
+            onPressed: () => router.push(const WifiListRoute())),
         body: RefreshIndicator(
           onRefresh: onRefresh,
           child: switch (results) {
